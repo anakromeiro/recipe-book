@@ -1,0 +1,19 @@
+### Add new recipe ###
+http POST localhost:5000/recipes name="Cheese Pizza" description="This is a lovely cheese pizza" num_of_servings:=2 cook_time:=30 directions="This is how you make it"
+http POST localhost:5000/recipes name="Tomato Pasta" description="This is a lovely tomato pasta recipe" num_of_servings:=3 cook_time:=20 directions="This is how you make it"
+
+### Get all recipes ###
+## This method will show an empty list, because none of the recipes has been published yet ##
+http GET localhost:5000/recipes
+
+### Publish a recipe ###
+http PUT localhost:5000/recipe/1/publish
+
+### This should return a 405 - METHOD NOW ALLOWED ###
+http DELETE localhost:5000/recipes
+
+### Edit a recipe ###
+http PUT localhost:5000/recipe/1 name="Lovely Cheese Pizza" description="This is a lovely cheese pizza recipe" num_of_servings:=3 cook_time:=60 directions="This is how you make it"
+
+### Get a specific recipe ###
+http GET localhost:5000/recipe/1
