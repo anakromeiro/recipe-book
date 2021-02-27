@@ -26,6 +26,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.DS_Store
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -64,6 +65,7 @@ db.sqlite3-journal
 # Flask stuff:
 instance/
 .webassets-cache
+migrations/
 
 # Scrapy stuff:
 .scrapy
@@ -128,3 +130,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# DB
+*.db
