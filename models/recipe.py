@@ -3,14 +3,6 @@ from extensions import db
 recipe_list = []
 
 
-def get_last_id():
-    if recipe_list:
-        last_recipe = recipe_list[-1]
-    else:
-        return 1
-    return last_recipe.id + 1
-
-
 class Recipe(db.Model):
     __tablename__ = 'recipe'
 
@@ -20,7 +12,7 @@ class Recipe(db.Model):
     num_of_servings = db.Column(db.Integer)
     cooking_time = db.Column(db.Integer)
     directions = db.Column(db.String(1000))
-    is_publish = db.Column(db.Boolean(), default=False)
+    is_published = db.Column(db.Boolean(), default=False)
     created_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now(), onupdate=db.func.now())
 
@@ -38,6 +30,18 @@ class Recipe(db.Model):
             'user_id': self.user_id
         }
 
+    @classmethod
+    def get_by_id(cls, recipe_id):
+        return cls.query.filter_by(id=recipe_id).first()
+
+    @classmethod
+    def get_all_published(cls):
+        return cls.query.filter_by(is_published=True)
+
     def save(self):
         db.session.add(self)
+        db.session.commit()
+
+    def remove(self):
+        db.session.delete(self)
         db.session.commit()
