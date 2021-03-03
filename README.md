@@ -3,6 +3,16 @@ Python RESTFul API using Flask and SQLAlchemy
 
 - SQLite as database
 
+### Installing the packages
+If you are using PyCharm IDE, right after add your package to the requirements file, you will see the option 
+"install requiriments" enabled, you just have to click there.
+
+If you are not using PyCharm IDE, you can run the command
+
+```
+pip install -r requirements.txt
+```
+
 ### Creating the database
 - to initialize the database (after run the command below, a new folder called migrations will be created)
 ```
