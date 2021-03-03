@@ -1,7 +1,5 @@
 from extensions import db
 
-recipe_list = []
-
 
 class Recipe(db.Model):
     __tablename__ = 'recipe'
@@ -16,7 +14,8 @@ class Recipe(db.Model):
     created_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now(), onupdate=db.func.now())
 
-    user_id = db.Column(db.Integer(), db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer(), db.ForeignKey("user.id"), nullable=False)
+    user = db.relationship('User', backref=db.backref('recipe_list', lazy=True))
 
     @property
     def data(self):
