@@ -35,7 +35,7 @@ class Recipe(db.Model):
 
     @classmethod
     def get_all_published(cls):
-        return cls.query.filter_by(is_published=True)
+        return cls.query.filter_by(is_published=True).all()
 
     def save(self):
         db.session.add(self)

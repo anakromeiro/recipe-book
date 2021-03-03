@@ -22,6 +22,9 @@ class UserListResource(Resource):
         if User.get_by_email(email):
             return {'message': 'email already used'}, HTTPStatus.BAD_REQUEST
 
+        if not non_hash_password:
+            return {'message': 'password cannot be null'}, HTTPStatus.BAD_REQUEST
+
         password = hash_password(non_hash_password)
 
         user = User(
@@ -54,9 +57,8 @@ class UserResource(Resource):
             }
         else:
             data = {
-                'id': user.id,
                 'username': user.username,
-                'message': 'You are registered in our application but you are not logged at the moment!'
+                'message': 'You are registered in our application but you are not logged in at the moment!'
             }
         return data, HTTPStatus.OK
 
