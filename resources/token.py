@@ -5,10 +5,13 @@ from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     jwt_required,
-    get_jwt_identity
+    get_jwt_identity,
+    get_jwt
 )
 from utils import check_password
 from models.user import User
+
+black_list = set()
 
 
 class TokenResource(Resource):
@@ -37,3 +40,12 @@ class RefreshResource(Resource):
         current_user = get_jwt_identity()
         access_token = create_access_token(identity=current_user, fresh=False)
         return {'access_token': access_token}, HTTPStatus.OK
+
+
+class RevokeResource(Resource):
+
+    @jwt_required(optional=False)
+    def post(self):
+        jti = get_jwt()['jti']
+        black_list.add(jti)
+        return {'message': 'Successfully logged out'}, HTTPStatus.OK

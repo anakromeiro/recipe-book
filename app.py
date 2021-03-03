@@ -7,7 +7,7 @@ from extensions import db, jwt
 
 from resources.user import UserListResource, UserResource, MeResource
 from resources.recipe import RecipeListResource, RecipeResource, RecipePublishResource
-from resources.token import TokenResource, RefreshResource
+from resources.token import TokenResource, RefreshResource, RevokeResource, black_list
 
 
 def create_app():
@@ -21,9 +21,15 @@ def create_app():
 
 
 def register_extensions(app):
+    db.app = app
     db.init_app(app)
     migrate = Migrate(app, db)
     jwt.init_app(app)
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_in_blocklist(self, decrypted_token):
+        jti = decrypted_token['jti']
+        return jti in black_list
 
 
 def register_resources(app):
@@ -33,6 +39,7 @@ def register_resources(app):
     api.add_resource(UserResource, '/users/<string:username>')
     api.add_resource(TokenResource, '/token')
     api.add_resource(RefreshResource, '/refresh')
+    api.add_resource(RevokeResource, '/revoke')
     api.add_resource(MeResource, '/me')
     api.add_resource(RecipeListResource, '/recipes')
     api.add_resource(RecipeResource, '/recipe/<int:recipe_id>')
