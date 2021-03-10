@@ -52,7 +52,7 @@ class RecipeResource(Resource):
         if not recipe.is_published and recipe.user_id != current_user:
             return {'message': 'Access is not allowed'}, HTTPStatus.FORBIDDEN
 
-        return recipe.data, HTTPStatus.OK
+        return recipe_schema.dump(recipe), HTTPStatus.OK
 
     '''
     I'll let both PATCH and PUT as example, but only PATCH, in this case, would be enough

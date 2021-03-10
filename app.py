@@ -3,7 +3,7 @@ from flask_migrate import Migrate
 from flask_restful import Api
 from config import Config
 from extensions import db, jwt, ma
-from resources.user import UserListResource, UserResource, MeResource
+from resources.user import UserListResource, UserResource, MeResource, UserRecipeListResource
 from resources.recipe import RecipeListResource, RecipeResource, RecipePublishResource
 from resources.token import TokenResource, RefreshResource, RevokeResource, black_list
 
@@ -38,6 +38,7 @@ def register_resources(recipe_book_app):
 
     api.add_resource(UserListResource, '/users')
     api.add_resource(UserResource, '/users/<string:username>')
+    api.add_resource(UserRecipeListResource, '/users/<string:username>/recipes')
     api.add_resource(TokenResource, '/token')
     api.add_resource(RefreshResource, '/refresh')
     api.add_resource(RevokeResource, '/revoke')

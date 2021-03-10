@@ -25,6 +25,15 @@ class Recipe(db.Model):
     def get_all_published(cls):
         return cls.query.filter_by(is_published=True).all()
 
+    @classmethod
+    def get_all_by_user(cls, user_id, visibility='public'):
+        if visibility == 'public':
+            return cls.query.filter_by(user_id=user_id, is_published=True).all()
+        elif visibility == 'private':
+            return cls.query.filter_by(user_id=user_id, is_published=False).all()
+        else:
+            return cls.query.filter_by(user_id=user_id).all()
+
     def save(self):
         db.session.add(self)
         db.session.commit()
