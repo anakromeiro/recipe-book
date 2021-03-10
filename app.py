@@ -1,30 +1,31 @@
 from flask import Flask
 from flask_migrate import Migrate
 from flask_restful import Api
-
 from config import Config
-from extensions import db, jwt
-
+from extensions import db, jwt, ma
 from resources.user import UserListResource, UserResource, MeResource
 from resources.recipe import RecipeListResource, RecipeResource, RecipePublishResource
 from resources.token import TokenResource, RefreshResource, RevokeResource, black_list
 
 
 def create_app():
-    app = Flask(__name__)
-    app.config.from_object(Config)
+    recipe_book_app = Flask(__name__)
+    recipe_book_app.config.from_object(Config)
 
-    register_extensions(app)
-    register_resources(app)
+    register_extensions(recipe_book_app)
+    register_resources(recipe_book_app)
 
-    return app
+    return recipe_book_app
 
 
-def register_extensions(app):
-    db.app = app
-    db.init_app(app)
-    migrate = Migrate(app, db)
-    jwt.init_app(app)
+def register_extensions(recipe_book_app):
+    db.app = recipe_book_app
+    db.init_app(recipe_book_app)
+    ma.app = recipe_book_app
+    ma.init_app(recipe_book_app)
+    jwt.app = recipe_book_app
+    jwt.init_app(recipe_book_app)
+    migrate = Migrate(recipe_book_app, db)
 
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blocklist(self, decrypted_token):
@@ -32,8 +33,8 @@ def register_extensions(app):
         return jti in black_list
 
 
-def register_resources(app):
-    api = Api(app)
+def register_resources(recipe_book_app):
+    api = Api(recipe_book_app)
 
     api.add_resource(UserListResource, '/users')
     api.add_resource(UserResource, '/users/<string:username>')

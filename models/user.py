@@ -12,14 +12,6 @@ class User(db.Model):
     created_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now(), onupdate=db.func.now())
 
-    @property
-    def data(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email
-        }
-
     @classmethod
     def get_by_username(cls, username):
         return cls.query.filter_by(username=username).first()

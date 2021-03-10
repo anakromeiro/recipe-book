@@ -1,7 +1,9 @@
 Flask==1.0.3
 Flask-RESTful==0.3.7
-httpie==1.0.2
 Flask-SQLAlchemy==2.4.0
 Flask-Migrate==2.5.2
-passlib==1.7.1
 Flask-JWT-Extended==4.0.0
+Flask-Marshmallow==0.14.0
+httpie==1.0.2
+passlib==1.7.1
+marshmallow-sqlalchemy==0.24.2

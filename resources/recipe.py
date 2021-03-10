@@ -2,42 +2,40 @@ from flask import request
 from flask_restful import Resource
 from http import HTTPStatus
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from marshmallow import ValidationError
 
 from models.recipe import Recipe
+from schemas.recipe import RecipeSchema
+
+recipe_schema = RecipeSchema()
+recipe_list_schema = RecipeSchema(many=True)
 
 
 class RecipeListResource(Resource):
 
     def get(self):
-        data = []
-
-        for recipe in Recipe.get_all_published():
-            data.append(recipe.data)
-
-        return {'data': data}, HTTPStatus.OK
+        recipes = Recipe.get_all_published()
+        return recipe_list_schema.dump(recipes), HTTPStatus.OK
 
     @jwt_required(optional=False)
     def post(self):
         json_data = request.get_json()
         current_user = get_jwt_identity()
 
-        name = json_data.get('name')
-        description = json_data.get('description')
-        num_of_servings = json_data.get('num_of_servings')
-        cooking_time = json_data.get('cooking_time')
-        directions = json_data.get('directions')
-        user_id = current_user
+        try:
+            data = recipe_schema.load(data=json_data)
+        except ValidationError as err:
+            return err.messages
 
-        recipe = Recipe(name=name,
-                        description=description,
-                        num_of_servings=num_of_servings,
-                        cooking_time=cooking_time,
-                        directions=directions,
-                        user_id=user_id)
+        recipe = Recipe(**data)
+        recipe.user_id = current_user
 
         recipe.save()
 
-        return recipe.data, HTTPStatus.CREATED
+        '''
+        Because the rendering of our data has been done through marshmallow, we don't need the data method
+        '''
+        return recipe_schema.dump(recipe), HTTPStatus.CREATED
 
 
 class RecipeResource(Resource):
@@ -56,10 +54,46 @@ class RecipeResource(Resource):
 
         return recipe.data, HTTPStatus.OK
 
+    '''
+    I'll let both PATCH and PUT as example, but only PATCH, in this case, would be enough
+    '''
+
+    @jwt_required(optional=False)
+    def patch(self, recipe_id):
+
+        json_data = request.get_json()
+        try:
+            data = recipe_schema.load(data=json_data, partial=('name',))
+        except ValidationError as error:
+            return error.messages, HTTPStatus.BAD_REQUEST
+
+        recipe = Recipe.get_by_id(recipe_id=recipe_id)
+
+        if recipe is None:
+            return {'message': 'Recipe not found'}, HTTPStatus.NOT_FOUND
+
+        current_user = get_jwt_identity()
+        if current_user != recipe.user_id:
+            return {'message': 'Access is not allowed'}, HTTPStatus.FORBIDDEN
+
+        recipe.name = data.get('name') or recipe.name
+        recipe.description = data.get('description') or recipe.description
+        recipe.num_of_servings = data.get('num_of_servings') or recipe.num_of_servings
+        recipe.cook_time = data.get('cooking_time') or recipe.cooking_time
+        recipe.directions = data.get('directions') or recipe.directions
+
+        recipe.save()
+        return recipe_schema.dump(recipe), HTTPStatus.OK
+
     @jwt_required(optional=False)
     def put(self, recipe_id):
 
-        data = request.get_json()
+        json_data = request.get_json()
+        try:
+            data = recipe_schema.load(data=json_data, partial=('name',))
+        except ValidationError as error:
+            return error.messages, HTTPStatus.BAD_REQUEST
+
         recipe = Recipe.get_by_id(recipe_id)
 
         if recipe is None:
@@ -69,15 +103,14 @@ class RecipeResource(Resource):
         if current_user != recipe.user_id:
             return {'message': 'Access is not allowed'}, HTTPStatus.FORBIDDEN
 
-        recipe.name = data['name']
-        recipe.description = data['description']
-        recipe.num_of_servings = data['num_of_servings']
-        recipe.cooking_time = data['cooking_time']
-        recipe.directions = data['directions']
+        recipe.name = data.get('name')
+        recipe.description = data.get('description')
+        recipe.num_of_servings = data.get('num_of_servings')
+        recipe.cook_time = data.get('cooking_time')
+        recipe.directions = data.get('directions')
 
         recipe.save()
-
-        return recipe.data, HTTPStatus.OK
+        return recipe_schema.dump(recipe), HTTPStatus.OK
 
     @jwt_required(optional=False)
     def delete(self, recipe_id):
