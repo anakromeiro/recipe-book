@@ -1,4 +1,4 @@
-from flask import request, url_for
+from flask import request, url_for, render_template
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
@@ -51,9 +51,8 @@ class UserListResource(Resource):
         token = generate_token(user.email, salt='activate')
         subject = 'Please confirm your registration.'
         link = url_for('useractivateresource', token=token, external=True)
-        text = 'Hi, Thanks for using My Recipe Book App! Please confirm your registration by clicking on the link: {}'\
-            .format(link)
-        mailgun.send_email(to=user.email, subject=subject, text=text)
+        html = render_template('activation_email.html', username=user.username, activation_link=link)
+        mailgun.send_email(to=user.email, subject=subject, text='', html=html)
 
         return user_schema.dump(user), HTTPStatus.CREATED
 
