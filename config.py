@@ -1,3 +1,6 @@
+import os
+
+
 class Config:
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///recipebook.db'
@@ -6,3 +9,5 @@ class Config:
     JWT_ERROR_MESSAGE_KEY = 'message'
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
+    MAILGUN_DOMAIN = os.environ.get('MAILGUN_DOMAIN')
+    MAILGUN_API_KEY = os.environ.get('MAILGUN_API_KEY')

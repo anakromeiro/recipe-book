@@ -1,9 +1,12 @@
-from flask import request
+from flask import request, url_for
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from marshmallow import ValidationError
 from http import HTTPStatus
 from webargs import fields
 from webargs.flaskparser import use_kwargs
+from utils import generate_token, verify_token
+from extensions import mailgun
 from models.user import User
 from models.recipe import Recipe
 from schemas.user import UserSchema
@@ -23,9 +26,11 @@ class UserListResource(Resource):
 
         json_data = request.get_json()
 
-        data = user_schema.load(data=json_data)
-        # if errors:
-        #     return {'message': 'Validation errors', 'errors': errors}, HTTPStatus.BAD_REQUEST
+        # Checks if there is any validation error during serialization
+        try:
+            data = user_schema.load(data=json_data)
+        except ValidationError as error:
+            return {'message': 'Validation errors', 'errors': error}, HTTPStatus.BAD_REQUEST
 
         username = json_data.get('username')
         email = json_data.get('email')
@@ -42,6 +47,13 @@ class UserListResource(Resource):
 
         user = User(**data)
         user.save()
+
+        token = generate_token(user.email, salt='activate')
+        subject = 'Please confirm your registration.'
+        link = url_for('useractivateresource', token=token, external=True)
+        text = 'Hi, Thanks for using My Recipe Book App! Please confirm your registration by clicking on the link: {}'\
+            .format(link)
+        mailgun.send_email(to=user.email, subject=subject, text=text)
 
         return user_schema.dump(user), HTTPStatus.CREATED
 
@@ -92,3 +104,25 @@ class UserRecipeListResource(Resource):
         recipes = Recipe.get_all_by_user(user_id=user.id, visibility=visibility)
 
         return recipe_list_schema.dump(recipes), HTTPStatus.OK
+
+
+class UserActivateResource(Resource):
+
+    def get(self, token):
+
+        email = verify_token(token, salt='activate')
+
+        if email is False:
+            return {'message': 'Invalid token or token expired'}, HTTPStatus.BAD_REQUEST
+
+        user = User.get_by_email(email=email)
+
+        if not user:
+            return {'message': 'User not found'}, HTTPStatus.NOT_FOUND
+        if user.is_active is True:
+            return {'message': 'The user account is already activated'}, HTTPStatus.BAD_REQUEST
+
+        user.is_active = True
+        user.save()
+
+        return {}, HTTPStatus.NO_CONTENT

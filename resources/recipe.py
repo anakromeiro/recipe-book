@@ -3,7 +3,6 @@ from flask_restful import Resource
 from http import HTTPStatus
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from marshmallow import ValidationError
-
 from models.recipe import Recipe
 from schemas.recipe import RecipeSchema
 
@@ -24,17 +23,14 @@ class RecipeListResource(Resource):
 
         try:
             data = recipe_schema.load(data=json_data)
-        except ValidationError as err:
-            return err.messages
+        except ValidationError as error:
+            return {'message': 'Validation errors', 'errors': error}, HTTPStatus.BAD_REQUEST
 
         recipe = Recipe(**data)
         recipe.user_id = current_user
 
         recipe.save()
 
-        '''
-        Because the rendering of our data has been done through marshmallow, we don't need the data method
-        '''
         return recipe_schema.dump(recipe), HTTPStatus.CREATED
 
 

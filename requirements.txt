@@ -8,3 +8,4 @@ httpie==1.0.2
 passlib==1.7.1
 marshmallow-sqlalchemy==0.24.2
 webargs==5.4.0
+itsdangerous==1.1.0

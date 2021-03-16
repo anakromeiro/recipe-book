@@ -30,5 +30,18 @@ After run the commands above, it's possible to see a new file called **recipeboo
 You can use DB Browser for SQLite to as GUI to access the database.
 
 
+## How it works
+### Creating and activating users
+- "Add new user" endpoint
+
+After create a new user, an email is sent with a activation link (in this code, I'm using the sandbox of mailgun, so 
+only one email is registered).
+
+- "Activate User" endpoint
+
+After clicking in the link sent by email, the user will be activated 
+
+---
+
 ### This project was based on the book
 ##### Python API Development Fundamentals - By Jack Chan, Ray Chung, Jack Huang (Nov/2019)
