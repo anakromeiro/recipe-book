@@ -11,3 +11,4 @@ class Config:
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
     MAILGUN_DOMAIN = os.environ.get('MAILGUN_DOMAIN')
     MAILGUN_API_KEY = os.environ.get('MAILGUN_API_KEY')
+    UPLOADED_IMAGES_DEST = 'static/images'

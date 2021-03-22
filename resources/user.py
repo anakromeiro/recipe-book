@@ -1,3 +1,4 @@
+import os
 from flask import request, url_for, render_template
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -5,19 +6,22 @@ from marshmallow import ValidationError
 from http import HTTPStatus
 from webargs import fields
 from webargs.flaskparser import use_kwargs
-from utils import generate_token, verify_token
-from extensions import mailgun
+from utils import generate_token, verify_token, save_image
+from extensions import mailgun, image_set
 from models.user import User
 from models.recipe import Recipe
 from schemas.user import UserSchema
 from schemas.recipe import RecipeSchema
 
+''' 
+When the authenticated user accesses its users/<username> endpoint, they can get id, username, and email.
+But if they are not authenticated or are accessing other people's /users/<username> endpoint,
+the email address will be hidden.
+'''
 user_schema = UserSchema()
-# when the authenticated user accesses its users/<username> endpoint, they can get id, username, and email.
-# But if they are not authenticated or are accessing other people's /users/<username> endpoint,
-# the email address will be hidden.
 user_public_schema = UserSchema(exclude=('email',))
 recipe_list_schema = RecipeSchema(many=True)
+user_avatar_schema = UserSchema(only=('avatar_url', ))
 
 
 class UserListResource(Resource):
@@ -125,3 +129,28 @@ class UserActivateResource(Resource):
         user.save()
 
         return {}, HTTPStatus.NO_CONTENT
+
+
+class UserAvatarUploadResource(Resource):
+
+    @jwt_required(optional=False)
+    def put(self):
+
+        file = request.files.get('avatar')
+        if not file:
+            return {'message': 'Not a valid image'}, HTTPStatus.BAD_REQUEST
+        if not image_set.file_allowed(file, file.filename):
+            return {'message': 'File type not allowed'}, HTTPStatus.BAD_REQUEST
+
+        user = User.get_by_id(user_id=get_jwt_identity())
+
+        if user.user_avatar:
+            avatar_path = image_set.path(folder='avatars', filename=user.user_avatar)
+            if os.path.exists(avatar_path):
+                os.remove(avatar_path)
+
+        filename = save_image(image=file, folder='avatars')
+        user.user_avatar = filename
+        user.save()
+
+        return user_avatar_schema.dump(user), HTTPStatus.OK

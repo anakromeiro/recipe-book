@@ -1,6 +1,7 @@
 from extensions import ma
 from schemas.user import UserSchema
 from marshmallow import validate, validates, post_dump
+from flask import url_for
 
 
 class RecipeSchema (ma.Schema):
@@ -11,6 +12,12 @@ class RecipeSchema (ma.Schema):
         if n > 50:
             raise ma.ValidationError('Number of servings must not be greater than 50.')
 
+    def dump_recipe_cover_url(self, recipe):
+        if recipe.recipe_cover_image:
+            return url_for('static', filename='images/recipe_covers/{}'.format(recipe.recipe_cover_image), _external=True)
+        else:
+            return url_for('static', filename='images/assets/default_recipe_cover.jpg', _external=True)
+
     class Meta:
         ordered = True
 
@@ -18,6 +25,7 @@ class RecipeSchema (ma.Schema):
     name = ma.String(required=True, validate=[validate.Length(max=100)])
     description = ma.String(validate=[validate.Length(max=200)])
     num_of_servings = ma.Integer(validate=validate_num_of_servings)
+    recipe_cover_url = ma.Method(serialize="dump_recipe_cover_url")
     is_published = ma.Boolean(dump_only=True)
     author = ma.Nested(UserSchema, attribute='user', dump_only=True, only=['id', 'username'])
     created_at = ma.DateTime(dump_only=True)
@@ -42,4 +50,3 @@ class RecipeSchema (ma.Schema):
         if many:
             return {'data': data}
         return data
-

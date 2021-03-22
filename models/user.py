@@ -8,6 +8,9 @@ class User(db.Model):
     username = db.Column(db.String(80), nullable=False, unique=True)
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200))
+    # user_avatar is designed to store the filename of the uploaded image. Due to this, it is a string with a length of
+    # 100. The default is None. The image itself will be stored in the server
+    user_avatar = db.Column(db.String(100), default=None)
     is_active = db.Column(db.Boolean(), default=False)
     created_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now(), onupdate=db.func.now())
